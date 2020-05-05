@@ -8,6 +8,7 @@ i = int(adres[1]) -1
 
 w = 0
 
+
 adres_start = int(adres[1])
 adres_stop = int(adres[2])
 
