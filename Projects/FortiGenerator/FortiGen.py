@@ -26,20 +26,17 @@ class FortiGen():
 
 
     def CreateHostName(self):
-        dhcp_txt = open(os.path.join(path,'FortiConfig','DHCP.txt'),'rt')
 
         os.makedirs(os.path.join(path,self.host))
         sys = os.path.join(path,self.host)
-        dhcp_output = open(os.path.join(sys,'fgt_config.conf'),'w+')
 
-        for line in dhcp_txt:
-            dhcp_output.write(line.replace('FW502R5618001244',self.host))
-        
+        with open(os.path.join(path,'FortiConfig','DHCP.txt')) as f:
+            newText=f.read().replace('FW502R5618001244',self.host)
 
-        dhcp_output.close()
-        dhcp_txt.close()
-
+        with open(os.path.join(sys,'fgt_config.conf'), "w") as f:
+            f.write(newText)       
         return
+
 
     def modeValidation(self):
         print(self.host)
@@ -61,6 +58,23 @@ for i in range(len(excel)):
     
     
 
+'''
+        dhcp_txt = open(os.path.join(path,'FortiConfig','DHCP.txt'),'rt')
+
+        os.makedirs(os.path.join(path,self.host))
+        sys = os.path.join(path,self.host)
+        dhcp_output = open(os.path.join(sys,'fgt_config.conf'),'w+')
+
+
+
+        for line in dhcp_txt:
+           dhcp_output.write(line.replace('FW502R5618001244',self.host))
+        
+
+        dhcp_output.close()
+        dhcp_txt.close()
+'''
+        
 
     
 
