@@ -1,0 +1,19 @@
+TOPIC
+    about_FortiGenerator
+
+SHORT DESCRIPTION
+    The FortiGenerator Module
+
+LONG DESCRIPTION
+	The FortiGenerator PowerShell Module, generate configuration file to FG devices.
+	
+	LIST OF CMDLETS
+
+		FortiGenerator
+		---------------
+		
+		Generate configuration to folder "Done_v10" from source "Source_v4" with IP link monitor "1.2.3.4"
+		FortiGenerator -Folder Done_v10 -CsvName Source_v4 -LinkMonitorIP 1.2.3.4
+		
+		Generate configuration to folder "Done_v10" from source "Source_v4" without link monitor
+		FortiGenerator -Folder Done_v10 -CsvName Source_v4 -LinkMonitor NO
