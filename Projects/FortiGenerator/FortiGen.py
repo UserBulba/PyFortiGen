@@ -41,6 +41,15 @@ class FortiGen():
             
         return Error
 
+    def Log(self):
+        #Log changes to log file.
+
+        ## Stworzenie pliku log w ukrytym katalogu w głównej lokalizacji.
+        ### wWeryfikacja katalogów wymanaganych do logowania w FileVerify.
+        #### Logowanie zmian do pliku log, appendowanie.
+        
+        return
+
     def Replace(self):
 
         Subnet = self.Lan.split(' ')
