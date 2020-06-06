@@ -47,7 +47,7 @@ class FortiGen():
         ## Stworzenie pliku log w ukrytym katalogu w głównej lokalizacji.
         ### wWeryfikacja katalogów wymanaganych do logowania w FileVerify.
         #### Logowanie zmian do pliku log, appendowanie.
-        
+
         return
 
     def Replace(self):
@@ -83,7 +83,7 @@ class FortiGen():
 
         return 
 
-#Excel?
+#Txt/Csv ?
 excel = pd.read_csv(os.path.join(os.getcwd(),'FortiConfig','Basic.csv'),usecols=['Host','WAN','LAN','Gateway'])
 
 for i in range(len(excel)):
