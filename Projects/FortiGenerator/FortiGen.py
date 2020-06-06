@@ -20,12 +20,14 @@ class FortiGen():
         FortiGen.Sort.append(self)
 
     def FileVerify(self):
+        #Try to create catalogue for configuration if error, return error to main loop for skip.
         Error = 0
         try:
             if not os.path.exists(os.path.join(self.Path, self.Host)):
                 os.makedirs(os.path.join(self.Path, self.Host))
             else:
                 print ("Catalogue for device {} found".format(self.Host))
+                #Count errors, to continue in loop
                 Error =+ 1
         except:
             print ("Sorry, error occurred :",sys.exc_info()[0])
@@ -43,7 +45,7 @@ class FortiGen():
         DHCPEndAddress = (LanIP[0] + '.'+ LanIP[1] + '.' + LanIP[2] + '.' + str(self.DHCPEnd))
 
         with open(os.path.join(self.Path,'FortiConfig','DHCP.txt')) as Config:
-            newText = Config.read().replace('FW502R5618001244',self.Host)
+            newText = Config.read().replace('FW502R5618001244', self.Host)
             newText = newText.replace('set timezone 04','set timezone ' + self.TimeZone)
             newText = newText.replace('set ip 10.10.20.1 255.255.255.0','set ip ' + self.Lan)
             newText = newText.replace('set default-gateway 10.10.20.1','set default-gateway ' + Subnet[0])
@@ -58,31 +60,22 @@ class FortiGen():
         return
 
     def Main(self):
-        if self.Wan == 'DHCP':
-            CountError = self.FileVerify()
-            
-            
+        if self.Wan == 'DHCP':           
             print ('DHCP configuration :', self.Wan, "-"*3, self.Host)
-
-            if CountError:
-                print (CountError)
-
             self.Replace()
 
         else:
-            CountError = self.FileVerify()
-
             print('Static configuration :', self.Wan, "-"*3, self.Host)
 
-            if CountError:
-                print (CountError)
+        return 
 
-        return CountError
-
+#Excel?
 excel = pd.read_csv(os.path.join(os.getcwd(),'FortiConfig','Basic.csv'),usecols=['Host','WAN','LAN','Gateway'])
 
 for i in range(len(excel)):
     FortiGen((excel['Host'][i]),(excel['WAN'][i]),(excel['LAN'][i]),(excel['Gateway'][i]))
-    
-    FortiGen.Main(FortiGen.Sort[i])
+    if FortiGen.FileVerify(FortiGen.Sort[i]) == 1:
+        continue
+    else :
+        FortiGen.Main(FortiGen.Sort[i])
     
