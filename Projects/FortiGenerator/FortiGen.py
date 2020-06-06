@@ -39,8 +39,8 @@ class FortiGen():
         Subnet = self.Lan.split(' ')
         LanIP = (Subnet[0]).split('.')
 
-        DHCPStartAddress = (LanIP[0] + '.'+ LanIP[1] + '.' + LanIP[2] + str(self.DHCPStart))
-        DHCPEndAddress = (LanIP[0] + '.'+ LanIP[1] + '.' + LanIP[2] + str(self.DHCPEnd))
+        DHCPStartAddress = (LanIP[0] + '.'+ LanIP[1] + '.' + LanIP[2] + '.' + str(self.DHCPStart))
+        DHCPEndAddress = (LanIP[0] + '.'+ LanIP[1] + '.' + LanIP[2] + '.' + str(self.DHCPEnd))
 
         with open(os.path.join(self.Path,'FortiConfig','DHCP.txt')) as Config:
             newText = Config.read().replace('FW502R5618001244',self.Host)
