@@ -6,7 +6,7 @@ class FortiGen():
     
     Sort = []
     
-    def __init__(self, Host, Wan, Lan, Gateway, DHCPStart=2, DHCPEnd=100):
+    def __init__(self, Host, Wan, Lan, Gateway, DHCPStart=2, DHCPEnd=100, Override=True):
         self.Host = Host
         self.Wan = Wan
         self.Lan = Lan
@@ -14,6 +14,7 @@ class FortiGen():
         self.DHCPEnd = DHCPEnd
         self.Gateway = Gateway
         self.TimeZone = '29'
+        self.overrideMode = Override
         self.Path = os.getcwd()
         self.Sys = os.path.join(self.Path, self.Host)
 
@@ -23,12 +24,16 @@ class FortiGen():
         #Try to create catalogue for configuration if error, return error to main loop for skip.
         Error = 0
         try:
+            #Validaton of paths
             if not os.path.exists(os.path.join(self.Path, self.Host)):
                 os.makedirs(os.path.join(self.Path, self.Host))
             else:
-                print ("Catalogue for device {} found".format(self.Host))
-                #Count errors, to continue in loop
-                Error =+ 1
+                #Count errors, to continue in loop or override if enabled.
+                if not self.overrideMode:
+                    Error =+ 1
+
+                print ("Catalogue for device {Type}".format(Type = "found" if not self.overrideMode else "overridden"))
+
         except:
             print ("Sorry, error occurred :",sys.exc_info()[0])
             #Count errors, to continue in loop
@@ -74,6 +79,8 @@ excel = pd.read_csv(os.path.join(os.getcwd(),'FortiConfig','Basic.csv'),usecols=
 
 for i in range(len(excel)):
     FortiGen((excel['Host'][i]),(excel['WAN'][i]),(excel['LAN'][i]),(excel['Gateway'][i]))
+
+    #Skip position in error occured.
     if FortiGen.FileVerify(FortiGen.Sort[i]) == 1:
         continue
     else :
