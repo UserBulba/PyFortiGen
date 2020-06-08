@@ -1,6 +1,9 @@
 import os
 import sys
 import pandas as pd
+import datetime
+import functools
+
 
 class FortiGen():
     
@@ -19,6 +22,37 @@ class FortiGen():
         self.Sys = os.path.join(self.Path, self.Host)
 
         FortiGen.Sort.append(self)
+
+    def __repr__(self):
+        return ('HOST - {}, WAN - {}, LAN - {}, Gateway - {} '.format(self.Host,self.Wan,self.Lan,self.Gateway))
+
+
+    def Wrapper_logFilePath(self):
+        #Log changes to log file.
+
+        ## Stworzenie pliku log w ukrytym katalogu w głównej lokalizacji.
+        ### wWeryfikacja katalogów wymanaganych do logowania w FileVerify.
+        #### Logowanie zmian do pliku log, appendowanie.
+
+
+        #Wrapping function to logfile
+        def Wrapper(func):
+            def func_with_wrapper(*args,**kwargs):
+                file = open(self,'a')
+                file.write('-'*20 + '\n')
+                file.write('Function "{}" started at {}\n'.format(str(func.__name__),datetime.datetime.now().isoformat()))
+                file.write('Following arguments were used:\n')
+                file.write(' '.join('{}'.format(x) for x in args))
+                file.write('\n')
+                file.write(' '.join('{}={}'.format(k,v) for (k,v) in kwargs.items()))
+                file.write('\n')
+                result = (str(*args),str(**kwargs))
+                #file.write('Function returned {}\n'.format(result))
+                file.close()
+                return result
+            return func_with_wrapper
+        return Wrapper
+
 
     def FileVerify(self):
         #Try to create catalogue for configuration if error, return error to main loop for skip.
@@ -41,15 +75,9 @@ class FortiGen():
             
         return Error
 
-    def Log(self):
-        #Log changes to log file.
-
-        ## Stworzenie pliku log w ukrytym katalogu w głównej lokalizacji.
-        ### wWeryfikacja katalogów wymanaganych do logowania w FileVerify.
-        #### Logowanie zmian do pliku log, appendowanie.
 
         return
-
+    @Wrapper_logFilePath(os.path.join(os.getcwd(),'changelog.txt'))
     def Replace(self):
 
         Subnet = self.Lan.split(' ')
@@ -73,6 +101,9 @@ class FortiGen():
 
         return
 
+    
+
+    #@Wrapper_logFilePath(os.getcwd()+'changelog.txt')
     def Main(self):
         if self.Wan == 'DHCP':           
             print ('DHCP configuration :', self.Wan, "-"*3, self.Host)
@@ -81,7 +112,10 @@ class FortiGen():
         else:
             print('Static configuration :', self.Wan, "-"*3, self.Host)
 
-        return 
+        return
+
+
+
 
 #Txt/Csv ?
 excel = pd.read_csv(os.path.join(os.getcwd(),'FortiConfig','Basic.csv'),usecols=['Host','WAN','LAN','Gateway'])
