@@ -26,7 +26,6 @@ class FortiGen():
     def __repr__(self):
         return ('HOST - {}, WAN - {}, LAN - {}, Gateway - {} '.format(self.Host,self.Wan,self.Lan,self.Gateway))
 
-
     def Wrapper_logFilePath(self):
         #Log changes to log file.
 
@@ -53,7 +52,6 @@ class FortiGen():
             return func_with_wrapper
         return Wrapper
 
-
     def FileVerify(self):
         #Try to create catalogue for configuration if error, return error to main loop for skip.
         Error = 0
@@ -75,8 +73,6 @@ class FortiGen():
             
         return Error
 
-
-        return
     @Wrapper_logFilePath(os.path.join(os.getcwd(),'changelog.txt'))
     def Replace(self):
 
@@ -101,8 +97,6 @@ class FortiGen():
 
         return
 
-    
-
     #@Wrapper_logFilePath(os.getcwd()+'changelog.txt')
     def Main(self):
         if self.Wan == 'DHCP':           
@@ -113,9 +107,6 @@ class FortiGen():
             print('Static configuration :', self.Wan, "-"*3, self.Host)
 
         return
-
-
-
 
 #Txt/Csv ?
 excel = pd.read_csv(os.path.join(os.getcwd(),'FortiConfig','Basic.csv'),usecols=['Host','WAN','LAN','Gateway'])
