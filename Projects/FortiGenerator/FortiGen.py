@@ -4,11 +4,10 @@ import pandas as pd
 import datetime
 import functools
 
-
 class FortiGen():
-    
+
     Sort = []
-    
+
     def __init__(self, Host, Wan, Lan, Gateway, DHCPStart=2, DHCPEnd=100, Override=True):
         self.Host = Host
         self.Wan = Wan
@@ -28,12 +27,6 @@ class FortiGen():
 
     def Wrapper_logFilePath(self):
         #Log changes to log file.
-
-        ## Stworzenie pliku log w ukrytym katalogu w głównej lokalizacji.
-        ### wWeryfikacja katalogów wymanaganych do logowania w FileVerify.
-        #### Logowanie zmian do pliku log, appendowanie.
-
-
         #Wrapping function to logfile
         def Wrapper(func):
             def func_with_wrapper(*args,**kwargs):
@@ -70,7 +63,7 @@ class FortiGen():
             print ("Sorry, error occurred :",sys.exc_info()[0])
             #Count errors, to continue in loop
             Error =+ 1
-            
+
         return Error
 
     @Wrapper_logFilePath(os.path.join(os.getcwd(),'changelog.txt'))
@@ -93,13 +86,13 @@ class FortiGen():
             newText = newText.replace('set gateway 91.226.50.97', 'set gateway ' + self.Gateway)
 
         with open(os.path.join(self.Sys,'fgt_config.conf'), "w") as Config:
-            Config.write(newText)       
+            Config.write(newText)
 
         return
 
     #@Wrapper_logFilePath(os.getcwd()+'changelog.txt')
     def Main(self):
-        if self.Wan == 'DHCP':           
+        if self.Wan == 'DHCP':
             print ('DHCP configuration :', self.Wan, "-"*3, self.Host)
             self.Replace()
 
@@ -119,4 +112,4 @@ for i in range(len(excel)):
         continue
     else :
         FortiGen.Main(FortiGen.Sort[i])
-    
+
