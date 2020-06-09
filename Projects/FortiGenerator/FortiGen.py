@@ -112,10 +112,14 @@ class FortiGen():
 # Txt/Csv ?
 
 
-excel = pd.read_csv(os.path.join(os.getcwd(), 'FortiConfig', 'Basic.csv'), usecols=['Host', 'WAN', 'LAN', 'Gateway'])
+excel = pd.read_csv(os.path.join(os.getcwd(), 'FortiConfig', 'Basic.csv'),
+                    usecols=['Host', 'WAN', 'LAN', 'Gateway'])
 
 for i in range(len(excel)):
-    FortiGen((excel['Host'][i]), (excel['WAN'][i]), (excel['LAN'][i]), (excel['Gateway'][i]))
+    FortiGen((excel['Host'][i]),
+             (excel['WAN'][i]),
+             (excel['LAN'][i]),
+             (excel['Gateway'][i]))
 
     # Skip position in error occured.
     if FortiGen.FileVerify(FortiGen.Sort[i]) == 1:
