@@ -67,7 +67,7 @@ class FortiGen():
 
         return Error
 
-    @Wrapper_logFilePath(os.path.join(os.getcwd(), 'changelog.txt'))
+    #@Wrapper_logFilePath(os.path.join(os.getcwd(), 'changelog.txt'))
     def Replace(self):
 
         Subnet = self.Lan.split(' ')
@@ -83,7 +83,7 @@ class FortiGen():
                           LanIP[2] + '.' +
                           str(self.DHCPEnd))
 
-        with open(os.path.join(self.Path, 'FortiConfig', 'DHCP.txt')) as Config:
+        with open(os.path.join(Path, 'Golden_Image.conf'),'r') as Config:
             newText = Config.read().replace('FW502R5618001244', self.Host)
             newText = newText.replace('set timezone 04', 'set timezone ' + self.TimeZone)
             newText = newText.replace('set ip 10.10.20.1 255.255.255.0', 'set ip ' + self.Lan)
@@ -92,9 +92,21 @@ class FortiGen():
             newText = newText.replace('set end-ip 10.10.20.254', 'set end-ip ' + DHCPEndAddress)
             newText = newText.replace('set ip 91.226.50.102 255.255.248.0', 'set ip ' + self.Wan)
             newText = newText.replace('set gateway 91.226.50.97', 'set gateway ' + self.Gateway)
+            
+
 
         with open(os.path.join(self.Sys, 'fgt_config.conf'), "w") as Config:
             Config.write(newText)
+
+        with open(os.path.join(Path, 'Golden_Image.conf'),'r') as Config:
+            for num,line in enumerate(Config,1):    
+                if 'config router static' in line:
+                    ConfigLine = num
+                    
+        lines = open(os.path.join(Path, 'Golden_Image.conf'),'r').readlines()
+        lines = lines[:ConfigLine] + lines[ConfigLine+4:]
+        open(os.path.join(Path, 'DHCP1.txt'),'w').writelines(lines)
+
 
         return
 
