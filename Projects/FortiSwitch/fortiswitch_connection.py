@@ -1,7 +1,8 @@
 '''Main module'''
-import json
+# import json
+# import cookiejar
 import requests
-import cookiejar
+from fortiswitch_methods import fortiswitch_system_snmp
 
 # Disable HTTPS warnings.
 import urllib3
