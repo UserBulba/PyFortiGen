@@ -2,13 +2,20 @@
 import configparser # Read config file.
 import os # Just os module?
 import logging # Logging errors.
+from pathlib import Path # Create a directory if needed.
 import requests # Requests HTTP Library.
 import urllib3 # Disable HTTPS warnings.
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+# Create logs dir
 current_dir = (os.path.dirname(os.path.realpath(__file__)))
+
+# Remove logs dir and try!
+##
+Path(os.path.join(current_dir, "logs")).mkdir(parents=True, exist_ok=True)
 logging_path = os.path.join(current_dir, "logs", "FortiSwitch.log")
+##
 
 # DEBUG -> WARNING :
 logging.basicConfig(filename=logging_path, level=logging.DEBUG,
@@ -34,7 +41,8 @@ class FortiSwitch: # pylint: disable=too-few-public-methods
         try:
             response = self.client.post(url, data=payload, verify=False)
         # Add normal exceptions with logging.
-        except:
+        except Exception as error: # pylint: disable=broad-except
+            logger.info(error)
         # Return error code form get_forti_requests.
             return None
 
@@ -55,7 +63,8 @@ class FortiSwitch: # pylint: disable=too-few-public-methods
         try:
             response = self.client.get(url, cookies = self.apscookie)
         # Add normal exceptions with logging.
-        except:
+        except Exception as error: # pylint: disable=broad-except
+            logger.info(error)
         # Return error code form get_forti_requests.
             return None
 
@@ -75,19 +84,19 @@ class FortiSwitch: # pylint: disable=too-few-public-methods
                 return snmp
 
     def delete_forti_community(self, community_id):
-            '''Delete FortiSwitch SNMP community'''
+        '''Delete FortiSwitch SNMP community'''
 
-            self.get_forti_request()
+        self.get_forti_request()
 
-            url = "https://{}/api/v2/cmdb/system.snmp/community{}".format(self.ip_addres, community_id)
-            try:
-                response = self.client.delete(url, cookies = self.apscookie)
-            # Add normal exceptions with logging.
-            except:
-            # Return error code form get_forti_requests.
-                response = None
-            finally:
-                return response
+        url = "https://{}/api/v2/cmdb/system.snmp/community{}".format(self.ip_addres, community_id)
+        try:
+            response = self.client.delete(url, cookies = self.apscookie)
+        # Add normal exceptions with logging.
+        except:
+        # Return error code form get_forti_requests.
+            response = None
+        finally:
+            return response
 
 def main(ip_addres):
     '''Main'''
