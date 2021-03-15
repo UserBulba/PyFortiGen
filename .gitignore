@@ -1,3 +1,4 @@
 
 *.json
 Projects/FortiSwitch/__pycache__/credentials.cpython-38.pyc
+Projects/FortiSwitch/conf.ini
