@@ -37,6 +37,7 @@ for item in range(len(Loop)):
     # print (item)
 
     Com = Switch["results"][item]["name"]
+    switch_id = Switch["results"][item]["id"]
     Status = Switch["results"][item]["status"]
     Hosts = Switch["results"][item]["hosts"]
 
