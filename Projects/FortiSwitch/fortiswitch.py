@@ -6,6 +6,11 @@ from pathlib import Path # Create a directory if needed.
 import requests # Requests HTTP Library.
 import urllib3 # Disable HTTPS warnings.
 
+
+##
+# Use crypto, key rings.
+##
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Create logs dir
@@ -54,6 +59,7 @@ class FortiSwitch: # pylint: disable=too-few-public-methods
 
         self.client.headers.update({'X-CSRFTOKEN':csrftoken})
 
+    @property
     def get_forti_community(self):
         '''Get FortiSwitch SNMP community'''
 
@@ -70,18 +76,28 @@ class FortiSwitch: # pylint: disable=too-few-public-methods
 
         switch = response.json()
         loop = switch["results"]
+        dictionary = {}
 
         for item in range(len(loop)):
+            try:
+                dictionary["community_name"] = switch["results"][item]["name"]
+            except Exception as error: # pylint: disable=broad-except
+                logger.info(error)
 
-            com = switch["results"][item]["name"]
-            community_id = switch["results"][item]["id"]
-            # status = switch["results"][item]["status"]
-            # hosts = switch["results"][item]["hosts"]
+            try:
+                dictionary["community_id"] = switch["results"][item]["id"]
+            except Exception as error: # pylint: disable=broad-except
+                logger.info(error)
 
-            if com:
-                snmp = "Current SNMP community {0} for {1}".format(com, self.ip_addres)
-                # return dictionary with id, status, com, etc...
-                return snmp
+        return dictionary
+
+                # status = switch["results"][item]["status"]
+                # hosts = switch["results"][item]["hosts"]
+
+            # if community_name:
+            #     snmp = "Current SNMP community {0} for {1}".format(community_name, self.ip_addres)
+            #     # return dictionary with id, status, com, etc...
+            #     return snmp
 
     def delete_forti_community(self, community_id):
         '''Delete FortiSwitch SNMP community'''
@@ -92,16 +108,22 @@ class FortiSwitch: # pylint: disable=too-few-public-methods
         try:
             response = self.client.delete(url, cookies = self.apscookie)
         # Add normal exceptions with logging.
-        except:
-        # Return error code form get_forti_requests.
+        except Exception as error: # pylint: disable=broad-except
+            logger.info(error)
+            # Return error code form get_forti_requests.
             response = None
         finally:
             return response
 
+
+
 def main(ip_addres):
     '''Main'''
     forti = FortiSwitch(ip=ip_addres)
-    request = forti.get_forti_community()
+    request = forti.get_forti_community
+
+    # Remove community getting id from dictionary
+
     return request
 
 switch = "10.140.167.2"
