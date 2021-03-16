@@ -1,5 +1,5 @@
 
 *.json
 *.pyc
-*.conf.ini
+*.ini
 *.log
