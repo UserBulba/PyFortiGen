@@ -1,15 +1,18 @@
+''' FortiGate config generator toolkit ''' # pylint: disable=invalid-name
 import os
 import sys
-import pandas as pd
 import datetime
+import pandas as pd
+
 # import functools
 
 
 class FortiGen():
-
+    ''' FortiGen class '''
     Sort = []
 
     def __init__(self, Host, Wan, Lan, Gateway, DHCPStart=2, DHCPEnd=100, Override=True):
+        ''' Init class '''
         self.Host = Host
         self.Wan = Wan
         self.Lan = Lan
