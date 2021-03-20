@@ -2,10 +2,10 @@
 import configparser # Read config file.
 import os # Just os module?
 import logging # Logging errors.
+import ast # Use to read list from config file.
 from pathlib import Path # Create a directory if needed.
 import requests # Requests HTTP Library.
 import urllib3 # Disable HTTPS warnings.
-
 
 ##
 # Use crypto, key rings.
@@ -36,6 +36,7 @@ class FortiSwitch: # pylint: disable=too-few-public-methods
         self.forti_secret = config.get("FortiSwitch", "secretkey")
         self.ip_addres = ip
         self.client = requests.session()
+        self.id = 1
 
     def get_forti_request(self):
         '''Get FortiSwitch api request'''
@@ -104,27 +105,67 @@ class FortiSwitch: # pylint: disable=too-few-public-methods
 
         self.get_forti_request()
 
-        url = "https://{}/api/v2/cmdb/system.snmp/community{}".format(self.ip_addres, community_id)
+        url = "https://{}/api/v2/cmdb/system.snmp/community/{}".format(self.ip_addres, community_id)
         try:
-            response = self.client.delete(url, cookies = self.apscookie)
-        # Add normal exceptions with logging.
+            return self.client.delete(url, cookies = self.apscookie)
+
         except Exception as error: # pylint: disable=broad-except
             logger.info(error)
             # Return error code form get_forti_requests.
-            response = None
-        finally:
-            return response
+            return None
 
+    def create_forti_community(self):
+        '''Create FortiSwitch SNMP community'''
 
+        config = configparser.ConfigParser()
+        config.read(os.path.dirname(__file__) + '/conf.ini')
+        snmp_community = config.get("SNMP", "community")
+        snmp_hosts = ast.literal_eval(config.get("SNMP", "hosts"))
+
+        self.get_forti_request()
+
+        url = "https://{}/api/v2/cmdb/system.snmp/community".format(self.ip_addres)
+
+        payload = {
+            "status" : "enable",
+            "name" : snmp_community,
+            "hosts" : [],
+            "id" : self.id
+        }
+
+        try:
+            for counter, host in enumerate(snmp_hosts, start=1):
+                payload["hosts"].append({'ip':host})
+                payload["hosts"].append({'id':counter})
+
+        except Exception as error: # pylint: disable=broad-except
+            logger.info(error)
+
+        try:
+            return self.client.post(url, data=payload, cookies = self.apscookie)
+
+        except Exception as error: # pylint: disable=broad-except
+            logger.info(error)
+            # Return error code form get_forti_requests.
+            return None
 
 def main(ip_addres):
     '''Main'''
     forti = FortiSwitch(ip=ip_addres)
+
     request = forti.get_forti_community
+    print(request)
 
     # Remove community getting id from dictionary
+    if remove_mode and ("community_id" in request):
+        request = forti.delete_forti_community(community_id=request["community_id"])
+        print(request)
+
+    request = forti.get_forti_community
+    print(request)
 
     return request
 
+remove_mode = True
 switch = "10.140.167.2"
 print(main(switch))
