@@ -1,14 +1,16 @@
-## Install requirements :
+# FortiSwitch SNMP configuration
+
+## Install requirements
 
 ```powershell
 py -m pip install -r requirements.txt
 ```
 
-## Set Password :
+## Set Password
 
 Both methods works the same way.
 
- - Python method :
+- Python method :
 
 ```python
 import keyring
@@ -22,4 +24,6 @@ keyring.set_password('Dummy', 'user', 'password')
 ```powershell
 Import-Module CredentialManager
 New-StoredCredential -Target Dummy -UserName user -Password "password" -Comment "My password for..." -Type Generic -Persist Enterprise
+
+Get-StoredCredential -Target Dummy -AsCredentialObject
 ```

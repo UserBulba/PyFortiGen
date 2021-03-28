@@ -1,29 +1,23 @@
 '''FortiSwitch API integrator'''
-import configparser # Read config file.
-import os # Just os module?
-import logging # Logging errors.
-import ast # Use to read list from config file.
-from pathlib import Path # Create a directory if needed.
-import requests # Requests HTTP Library.
-import urllib3 # Disable HTTPS warnings.
+import ast  # Use to read list from config file.
+import configparser  # Read config file.
+import json  # JSON module.
+import logging  # Logging errors.
+import os  # Just os module?
+from pathlib import Path  # Create a directory if needed.
 
-##
-# Use crypto, key rings.
-##
+import requests  # Requests HTTP Library.
+import urllib3  # Disable HTTPS warnings.
+
+from private.credential_manager import restore_credential as credentials
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# Create logs dir
 current_dir = (os.path.dirname(os.path.realpath(__file__)))
-
-# Remove logs dir and try!
-##
 Path(os.path.join(current_dir, "logs")).mkdir(parents=True, exist_ok=True)
 logging_path = os.path.join(current_dir, "logs", "FortiSwitch.log")
-##
 
-# DEBUG -> WARNING :
-logging.basicConfig(filename=logging_path, level=logging.DEBUG,
+logging.basicConfig(filename=logging_path, level=logging.WARNING,
                     format='%(asctime)s %(levelname)s %(name)s %(message)s')
 logger=logging.getLogger(__name__)
 
@@ -31,11 +25,31 @@ class FortiSwitch: # pylint: disable=too-few-public-methods
     '''FortiSwitch class'''
     def __init__(self, ip):
         config = configparser.ConfigParser()
-        config.read(os.path.dirname(__file__) + '/conf.ini')
-        self.forti_user = config.get("FortiSwitch", "username")
-        self.forti_secret = config.get("FortiSwitch", "secretkey")
+        config.read(os.path.dirname(__file__) + 'config/conf.ini')
+
+        try:
+            service = config.get("Credential_Manager", "service")
+            if service != "None":
+                credential_manager = credentials(service=service)
+                self.forti_user = credential_manager["username"]
+                self.forti_secret = credential_manager["password"]
+
+            # Check if username and secret exists in config?
+            else:
+                self.forti_user = config.get("FortiSwitch", "username")
+                self.forti_secret = config.get("FortiSwitch", "secretkey")
+
+        except configparser.NoOptionError:
+            self.forti_user = config.get("FortiSwitch", "username")
+            self.forti_secret = config.get("FortiSwitch", "secretkey")
+
+        except Exception as error: # pylint: disable=broad-except
+            logger.info(error)
+
+        
         self.ip_addres = ip
         self.client = requests.session()
+
         self.id = 1
 
     def get_forti_request(self):
@@ -69,10 +83,8 @@ class FortiSwitch: # pylint: disable=too-few-public-methods
         url = "https://{}/api/v2/cmdb/system.snmp/community".format(self.ip_addres)
         try:
             response = self.client.get(url, cookies = self.apscookie)
-        # Add normal exceptions with logging.
         except Exception as error: # pylint: disable=broad-except
             logger.info(error)
-        # Return error code form get_forti_requests.
             return None
 
         switch = response.json()
@@ -92,14 +104,6 @@ class FortiSwitch: # pylint: disable=too-few-public-methods
 
         return dictionary
 
-                # status = switch["results"][item]["status"]
-                # hosts = switch["results"][item]["hosts"]
-
-            # if community_name:
-            #     snmp = "Current SNMP community {0} for {1}".format(community_name, self.ip_addres)
-            #     # return dictionary with id, status, com, etc...
-            #     return snmp
-
     def delete_forti_community(self, community_id):
         '''Delete FortiSwitch SNMP community'''
 
@@ -118,8 +122,9 @@ class FortiSwitch: # pylint: disable=too-few-public-methods
         '''Create FortiSwitch SNMP community'''
 
         config = configparser.ConfigParser()
-        config.read(os.path.dirname(__file__) + '/conf.ini')
+        config.read(os.path.dirname(__file__) + 'config/conf.ini')
         snmp_community = config.get("SNMP", "community")
+        snmp_interface = config.get("SNMP", "interface")
         snmp_hosts = ast.literal_eval(config.get("SNMP", "hosts"))
 
         self.get_forti_request()
@@ -137,17 +142,26 @@ class FortiSwitch: # pylint: disable=too-few-public-methods
             for counter, host in enumerate(snmp_hosts, start=1):
                 payload["hosts"].append({'ip':host})
                 payload["hosts"].append({'id':counter})
+                payload["hosts"].append({'interface':snmp_interface})
+
 
         except Exception as error: # pylint: disable=broad-except
             logger.info(error)
 
         try:
-            return self.client.post(url, data=payload, cookies = self.apscookie)
+            return self.client.post(url, data=json.dumps(payload), cookies = self.apscookie)
 
         except Exception as error: # pylint: disable=broad-except
             logger.info(error)
             # Return error code form get_forti_requests.
             return None
+
+    @property
+    def get_forti_sysinfo(self):
+        '''Get FortiSwitch SNMP sysinfo'''
+
+    def update_forti_sysinfo(self):
+        '''Update FortiSwitch SNMP sysinfo'''
 
 def main(ip_addres):
     '''Main'''
@@ -156,9 +170,17 @@ def main(ip_addres):
     request = forti.get_forti_community
     print(request)
 
-    # Remove community getting id from dictionary
+    # Remove community getting id from dictionary.
     if remove_mode and ("community_id" in request):
         request = forti.delete_forti_community(community_id=request["community_id"])
+        print(request)
+
+    request = forti.get_forti_community
+    print(request)
+
+    # Create SNMP community.
+    if creation_mode:
+        request = forti.create_forti_community()
         print(request)
 
     request = forti.get_forti_community
@@ -167,5 +189,7 @@ def main(ip_addres):
     return request
 
 remove_mode = True
+creation_mode = True
+
 switch = "10.140.167.2"
 print(main(switch))
