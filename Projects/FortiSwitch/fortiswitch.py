@@ -5,7 +5,8 @@ import json  # JSON module.
 import logging  # Logging errors.
 import os  # Just os module?
 from pathlib import Path  # Create a directory if needed.
-
+import socket # Check if port is open.
+from contextlib import closing # Ensure the port after check will be closed.
 import requests  # Requests HTTP Library.
 import urllib3  # Disable HTTPS warnings.
 
@@ -163,9 +164,20 @@ class FortiSwitch: # pylint: disable=too-few-public-methods
     def update_forti_sysinfo(self):
         '''Update FortiSwitch SNMP sysinfo'''
 
-def main(ip_addres):
+    @staticmethod
+    def check_socket(host, port):
+        '''Check if port is open'''
+        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+            if sock.connect_ex((host, port)) == 0:
+                return True
+
+            return False
+
+def main(ip_addres, port):
     '''Main'''
     forti = FortiSwitch(ip=ip_addres)
+    # Get dictionary or just start?
+    forti.check_socket(host=switch, port=port)
 
     request = forti.get_forti_community
     print(request)
@@ -188,8 +200,10 @@ def main(ip_addres):
 
     return request
 
+# Check connectivity...
 remove_mode = True
 creation_mode = True
 
 switch = "10.140.167.2"
-print(main(switch))
+port = 443
+print(main(switch, port))
