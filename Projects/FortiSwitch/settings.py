@@ -11,3 +11,6 @@ COMMUNITY = "OtCfCommPuB"
 LOCATION = "OTCF"
 DESCRIPTION = "FortiSwitch device - OTCF property."
 CONTACT = "admin@otcf.pl"
+
+# Import
+PATH =  r"C:\Temp\FS"
