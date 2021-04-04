@@ -12,6 +12,7 @@ import requests  # Requests HTTP Library.
 import urllib3  # Disable HTTPS warnings.
 from python_settings import settings  # Importing configuration file.
 
+import private.read_file as read_file  # Read file.
 from private.credential_manager import restore_credential as credentials
 
 os.environ["SETTINGS_MODULE"] = 'settings'
@@ -275,6 +276,12 @@ remove_mode = True
 creation_mode = True
 sysinfo = True
 
-switch = "10.140.167.2:443"
-ip, port = switch.split(":")
+switch = read_file.ProcessFile
+switch_list = switch.import_file(settings.PATH)
+
+# switch = "10.140.167.2:443"
+for switch in switch_list:
+    ip, port = switch.split(":")
+    pass
+
 print(main(ip_addres=ip, port=port))
