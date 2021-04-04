@@ -133,7 +133,8 @@ class FortiSwitch: # pylint: disable=too-few-public-methods
 
         url = "https://{}/api/v2/cmdb/system.snmp/community/{}".format(self.ip_addres, community_id)
         try:
-            return self.client.delete(url, cookies = self.apscookie)
+            response = self.client.delete(url, cookies = self.apscookie)
+            return response.json()
 
         except Exception as error: # pylint: disable=broad-except
             logger.info(error)
@@ -244,9 +245,11 @@ class FortiSwitch: # pylint: disable=too-few-public-methods
 def main(ip_addres, port):
     '''Main'''
     forti = FortiSwitch(ip=ip_addres)
+    output = {}
     # Get dictionary or just start?
-    validator = forti.check_socket(host=switch, port=port)
+    validator = forti.check_socket(host=ip_addres, port=int(port))
     if validator:
+        output["connectivity"] = True
         request = forti.get_forti_community
         if request is None:
             return
@@ -254,6 +257,7 @@ def main(ip_addres, port):
         # Remove community getting id from dictionary.
         if remove_mode and ("community_id" in request):
             request = forti.delete_forti_community(community_id=request["community_id"])
+            output["remove"] = request["status"]
 
         # Create SNMP community.
         if creation_mode:
@@ -267,13 +271,10 @@ def main(ip_addres, port):
             request = forti.put_forti_sysinfo()
             print(request)
 
-        # return request
-
-
 remove_mode = True
 creation_mode = True
 sysinfo = True
 
-switch = "10.140.167.2"
-port = 443
-print(main(switch, port))
+switch = "10.140.167.2:443"
+ip, port = switch.split(":")
+print(main(ip_addres=ip, port=port))
