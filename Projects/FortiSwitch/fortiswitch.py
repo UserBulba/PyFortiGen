@@ -1,23 +1,26 @@
 '''FortiSwitch API integrator'''
-import ast  # Use to read list from config file.
+# import ast  # Use to read list from config file.
 import configparser  # Read config file.
 import json  # JSON module.
 import logging  # Logging errors.
 import os  # Just os module?
+import socket  # Check if port is open.
+from contextlib import closing  # Ensure the port after check will be closed.
 from pathlib import Path  # Create a directory if needed.
-import socket # Check if port is open.
-from contextlib import closing # Ensure the port after check will be closed.
+
 import requests  # Requests HTTP Library.
 import urllib3  # Disable HTTPS warnings.
+from python_settings import settings  # Importing configuration file.
 
 from private.credential_manager import restore_credential as credentials
+
+os.environ["SETTINGS_MODULE"] = 'settings'
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 current_dir = (os.path.dirname(os.path.realpath(__file__)))
 Path(os.path.join(current_dir, "logs")).mkdir(parents=True, exist_ok=True)
 logging_path = os.path.join(current_dir, "logs", "FortiSwitch.log")
-
 logging.basicConfig(filename=logging_path, level=logging.WARNING,
                     format='%(asctime)s %(levelname)s %(name)s %(message)s')
 logger=logging.getLogger(__name__)
@@ -26,7 +29,12 @@ class FortiSwitch: # pylint: disable=too-few-public-methods
     '''FortiSwitch class'''
     def __init__(self, ip):
         config = configparser.ConfigParser()
-        config.read(os.path.dirname(__file__) + 'config/conf.ini')
+        config.read(os.path.join(current_dir, "config", "conf.ini"))
+
+        self.error = False
+        self.ip_addres = ip
+        self.client = requests.session()
+        self.id = 1
 
         try:
             service = config.get("Credential_Manager", "service")
@@ -35,26 +43,24 @@ class FortiSwitch: # pylint: disable=too-few-public-methods
                 self.forti_user = credential_manager["username"]
                 self.forti_secret = credential_manager["password"]
 
-            # Check if username and secret exists in config?
-            else:
-                self.forti_user = config.get("FortiSwitch", "username")
-                self.forti_secret = config.get("FortiSwitch", "secretkey")
+        except configparser.NoOptionError as error:
+            logger.info(error)
+            self.error = True
 
-        except configparser.NoOptionError:
-            self.forti_user = config.get("FortiSwitch", "username")
-            self.forti_secret = config.get("FortiSwitch", "secretkey")
+        except TypeError as error:
+            logger.info(error)
+            self.error = True
 
         except Exception as error: # pylint: disable=broad-except
             logger.info(error)
+            self.error = True
 
-        
-        self.ip_addres = ip
-        self.client = requests.session()
-
-        self.id = 1
-
-    def get_forti_request(self):
+    def __get_forti_request(self):
         '''Get FortiSwitch api request'''
+
+        # Escape when error
+        if self.error:
+            return None
 
         # Login request
         url = "https://{}/logincheck".format(self.ip_addres)
@@ -64,7 +70,7 @@ class FortiSwitch: # pylint: disable=too-few-public-methods
         # Add normal exceptions with logging.
         except Exception as error: # pylint: disable=broad-except
             logger.info(error)
-        # Return error code form get_forti_requests.
+        # Return error code form __get_forti_requests.
             return None
 
         self.apscookie = response.cookies
@@ -79,27 +85,38 @@ class FortiSwitch: # pylint: disable=too-few-public-methods
     def get_forti_community(self):
         '''Get FortiSwitch SNMP community'''
 
-        self.get_forti_request()
+        # Escape when error
+        if self.error:
+            return None
+
+        self.__get_forti_request()
 
         url = "https://{}/api/v2/cmdb/system.snmp/community".format(self.ip_addres)
         try:
             response = self.client.get(url, cookies = self.apscookie)
         except Exception as error: # pylint: disable=broad-except
             logger.info(error)
-            return None
 
-        switch = response.json()
-        loop = switch["results"]
+        results = response.json()
+        loop = results["results"]
         dictionary = {}
 
         for item in range(len(loop)):
             try:
-                dictionary["community_name"] = switch["results"][item]["name"]
+                dictionary["community_name"] = results["results"][item]["name"]
+
             except Exception as error: # pylint: disable=broad-except
                 logger.info(error)
 
             try:
-                dictionary["community_id"] = switch["results"][item]["id"]
+                dictionary["community_id"] = results["results"][item]["id"]
+
+            except Exception as error: # pylint: disable=broad-except
+                logger.info(error)
+
+            try:
+                dictionary["hosts"] = results["results"][item]["hosts"]
+
             except Exception as error: # pylint: disable=broad-except
                 logger.info(error)
 
@@ -108,7 +125,11 @@ class FortiSwitch: # pylint: disable=too-few-public-methods
     def delete_forti_community(self, community_id):
         '''Delete FortiSwitch SNMP community'''
 
-        self.get_forti_request()
+        # Escape when error
+        if self.error:
+            return None
+
+        self.__get_forti_request()
 
         url = "https://{}/api/v2/cmdb/system.snmp/community/{}".format(self.ip_addres, community_id)
         try:
@@ -116,35 +137,34 @@ class FortiSwitch: # pylint: disable=too-few-public-methods
 
         except Exception as error: # pylint: disable=broad-except
             logger.info(error)
-            # Return error code form get_forti_requests.
+            # Return error code form __get_forti_requests.
             return None
 
     def create_forti_community(self):
         '''Create FortiSwitch SNMP community'''
 
-        config = configparser.ConfigParser()
-        config.read(os.path.dirname(__file__) + 'config/conf.ini')
-        snmp_community = config.get("SNMP", "community")
-        snmp_interface = config.get("SNMP", "interface")
-        snmp_hosts = ast.literal_eval(config.get("SNMP", "hosts"))
+        # Escape when error
+        if self.error:
+            return None
 
-        self.get_forti_request()
+        self.__get_forti_request()
 
         url = "https://{}/api/v2/cmdb/system.snmp/community".format(self.ip_addres)
 
         payload = {
             "status" : "enable",
-            "name" : snmp_community,
+            "name" : settings.COMMUNITY,
             "hosts" : [],
             "id" : self.id
         }
 
         try:
-            for counter, host in enumerate(snmp_hosts, start=1):
-                payload["hosts"].append({'ip':host})
-                payload["hosts"].append({'id':counter})
-                payload["hosts"].append({'interface':snmp_interface})
-
+            for counter, host in enumerate(settings.HOSTS, start=1):
+                payload["hosts"].append({
+                    "ip":host,
+                    "id":counter,
+                    "interface":settings.INTERFACE
+                })
 
         except Exception as error: # pylint: disable=broad-except
             logger.info(error)
@@ -154,20 +174,68 @@ class FortiSwitch: # pylint: disable=too-few-public-methods
 
         except Exception as error: # pylint: disable=broad-except
             logger.info(error)
-            # Return error code form get_forti_requests.
             return None
 
     @property
     def get_forti_sysinfo(self):
         '''Get FortiSwitch SNMP sysinfo'''
 
-    def update_forti_sysinfo(self):
+        # Escape when error
+        if self.error:
+            return None
+
+        self.__get_forti_request()
+
+        url = "https://{}/api/v2/cmdb/system.snmp/sysinfo".format(self.ip_addres)
+        try:
+            response = self.client.get(url, cookies = self.apscookie)
+
+        except Exception as error: # pylint: disable=broad-except
+            logger.info(error)
+
+        results = response.json()
+        dictionary = {}
+        try:
+            dictionary["status"] = results["results"]["status"]
+            dictionary["location"] = results["results"]["location"]
+            dictionary["description"] = results["results"]["description"]
+            dictionary["contact-info"] = results["results"]["contact-info"]
+
+        except Exception as error: # pylint: disable=broad-except
+            logger.info(error)
+
+        return dictionary
+
+    def put_forti_sysinfo(self):
         '''Update FortiSwitch SNMP sysinfo'''
+
+        # Escape when error
+        if self.error:
+            return None
+
+        self.__get_forti_request()
+
+        url = "https://{}/api/v2/cmdb//system.snmp/sysinfo".format(self.ip_addres)
+
+        payload = {
+            "status" : "enable",
+            "location" : settings.LOCATION,
+            "description" : settings.DESCRIPTION,
+            "contact-info" : settings.CONTACT
+        }
+
+        try:
+            return self.client.put(url, data=json.dumps(payload), cookies = self.apscookie)
+
+        except Exception as error: # pylint: disable=broad-except
+            logger.info(error)
+            return None
 
     @staticmethod
     def check_socket(host, port):
         '''Check if port is open'''
         with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+            sock.settimeout(5)
             if sock.connect_ex((host, port)) == 0:
                 return True
 
@@ -177,32 +245,34 @@ def main(ip_addres, port):
     '''Main'''
     forti = FortiSwitch(ip=ip_addres)
     # Get dictionary or just start?
-    forti.check_socket(host=switch, port=port)
+    validator = forti.check_socket(host=switch, port=port)
+    if validator:
+        request = forti.get_forti_community
+        if request is None:
+            return
 
-    request = forti.get_forti_community
-    print(request)
+        # Remove community getting id from dictionary.
+        if remove_mode and ("community_id" in request):
+            request = forti.delete_forti_community(community_id=request["community_id"])
 
-    # Remove community getting id from dictionary.
-    if remove_mode and ("community_id" in request):
-        request = forti.delete_forti_community(community_id=request["community_id"])
-        print(request)
+        # Create SNMP community.
+        if creation_mode:
+            request = forti.create_forti_community()
 
-    request = forti.get_forti_community
-    print(request)
+        # Fill SysInfo.
+        if sysinfo:
+            request = forti.get_forti_sysinfo
+            print(request)
 
-    # Create SNMP community.
-    if creation_mode:
-        request = forti.create_forti_community()
-        print(request)
+            request = forti.put_forti_sysinfo()
+            print(request)
 
-    request = forti.get_forti_community
-    print(request)
+        # return request
 
-    return request
 
-# Check connectivity...
 remove_mode = True
 creation_mode = True
+sysinfo = True
 
 switch = "10.140.167.2"
 port = 443
