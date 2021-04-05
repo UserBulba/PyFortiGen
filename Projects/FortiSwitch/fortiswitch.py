@@ -16,7 +16,7 @@ from python_settings import settings  # Importing configuration file.
 from private.credential_manager import restore_credential as credentials
 
 os.environ["SETTINGS_MODULE"] = 'settings'
-
+PYTHONDONTWRITEBYTECODE = True # cspell: disable-line
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 current_dir = (os.path.dirname(os.path.realpath(__file__)))
