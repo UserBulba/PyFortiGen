@@ -3,3 +3,5 @@ requests
 cookiejar
 keyring
 python_settings
+queue
+threading
