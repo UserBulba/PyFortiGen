@@ -9,6 +9,8 @@ from python_settings import settings  # Importing configuration file.
 import private.read_file as read_file  # Read file.
 from fortiswitch import FortiSwitch  # FortiSwitch API.
 
+PYTHONDONTWRITEBYTECODE = True # cspell: disable-line
+
 class Worker(threading.Thread):
     '''Thread'''
     def __init__(self, q, *args, **kwargs):
