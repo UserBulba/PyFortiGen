@@ -1,5 +1,6 @@
 '''FortiSwitch API integrator'''
-# import ast  # Use to read list from config file.
+# fortiswitch.py
+
 import configparser  # Read config file.
 import json  # JSON module.
 import logging  # Logging errors.
@@ -12,7 +13,6 @@ import requests  # Requests HTTP Library.
 import urllib3  # Disable HTTPS warnings.
 from python_settings import settings  # Importing configuration file.
 
-import private.read_file as read_file  # Read file.
 from private.credential_manager import restore_credential as credentials
 
 os.environ["SETTINGS_MODULE"] = 'settings'
@@ -28,14 +28,19 @@ logger=logging.getLogger(__name__)
 
 class FortiSwitch: # pylint: disable=too-few-public-methods
     '''FortiSwitch class'''
-    def __init__(self, ip):
+    def __init__(self, ip, port):
         config = configparser.ConfigParser()
         config.read(os.path.join(current_dir, "config", "conf.ini"))
 
         self.error = False
         self.ip_addres = ip
+        self.apscookie = None
         self.client = requests.session()
-        self.id = 1
+        self.ident = 1
+
+        self.port = self.port_req  = port
+        if self.port == '443':
+            self.port_req = None
 
         try:
             service = config.get("Credential_Manager", "service")
@@ -64,7 +69,7 @@ class FortiSwitch: # pylint: disable=too-few-public-methods
             return None
 
         # Login request
-        url = "https://{}/logincheck".format(self.ip_addres)
+        url = "https://{}/logincheck{}".format(self.ip_addres, self.port_req)
         payload = "username={}&secretkey={}".format(self.forti_user, self.forti_secret)
         try:
             response = self.client.post(url, data=payload, verify=False)
@@ -157,7 +162,7 @@ class FortiSwitch: # pylint: disable=too-few-public-methods
             "status" : "enable",
             "name" : settings.COMMUNITY,
             "hosts" : [],
-            "id" : self.id
+            "id" : self.ident
         }
 
         try:
@@ -233,55 +238,51 @@ class FortiSwitch: # pylint: disable=too-few-public-methods
             logger.info(error)
             return None
 
-    @staticmethod
-    def check_socket(host, port):
+    def check_socket(self):
         '''Check if port is open'''
         with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
             sock.settimeout(5)
-            if sock.connect_ex((host, port)) == 0:
+            if sock.connect_ex((self.ip_addres, int(self.port))) == 0:
                 return True
 
             return False
 
-def main(ip_addres, port):
-    '''Main'''
-    forti = FortiSwitch(ip=ip_addres)
-    output = {}
-    # Get dictionary or just start?
-    validator = forti.check_socket(host=ip_addres, port=int(port))
-    if validator:
-        output["connectivity"] = True
-        request = forti.get_forti_community
-        if request is None:
-            return
+# def main(ip_addres, port):
+#     '''Main'''
+#     forti = FortiSwitch(ip=ip_addres)
+#     output = {}
+#     # Get dictionary or just start?
+#     validator = forti.check_socket(host=ip_addres, port=int(port))
+#     if validator:
+#         output["connectivity"] = True
 
-        # Remove community getting id from dictionary.
-        if remove_mode and ("community_id" in request):
-            request = forti.delete_forti_community(community_id=request["community_id"])
-            output["remove"] = request["status"]
+#         # Get FortiSwitch community.
+#         request = forti.get_forti_community
+#         if request is None:
+#             return
 
-        # Create SNMP community.
-        if creation_mode:
-            request = forti.create_forti_community()
+#         # Remove community getting id from dictionary.
+#         if "community_id" in request:
+#             request = forti.delete_forti_community(community_id=request["community_id"])
+#             output["remove"] = request["status"]
 
-        # Fill SysInfo.
-        if sysinfo:
-            request = forti.get_forti_sysinfo
-            print(request)
+#         # Create SNMP community.
+#         request = forti.create_forti_community()
+#         output["create"] = request["status"]
 
-            request = forti.put_forti_sysinfo()
-            print(request)
+#         # Fill SysInfo.
+#         request = forti.put_forti_sysinfo()
+#         output["sysinfo"] = request["status"]
 
-remove_mode = True
-creation_mode = True
-sysinfo = True
 
-switch = read_file.ProcessFile
-switch_list = switch.import_file(settings.PATH)
+# remove_mode = True
+# creation_mode = True
+# sysinfo = True
 
-# switch = "10.140.167.2:443"
-for switch in switch_list:
-    ip, port = switch.split(":")
-    pass
+# switch = read_file.ProcessFile
+# switch_list = switch.import_file(settings.PATH)
 
-print(main(ip_addres=ip, port=port))
+# for switch in switch_list:
+#     ip, port = switch.split(":")
+
+# print(main(ip_addres=ip, port=port))
