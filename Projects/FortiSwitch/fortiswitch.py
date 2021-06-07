@@ -66,6 +66,7 @@ class FortiSwitch: # pylint: disable=too-few-public-methods
 
         # Escape when error
         if self.error:
+            logger.error("Error occured for {error}", error = self.ip_addres)
             return None
 
         # Login request
