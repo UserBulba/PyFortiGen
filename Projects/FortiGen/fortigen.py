@@ -2,8 +2,8 @@
 import os
 import shutil
 import tkinter
-from pathlib import Path  # Create a directory if needed.
-from threading import Thread  # Multi thread.
+from pathlib import Path
+from threading import Thread
 from tkinter import filedialog
 
 from backend.fortisource import FortiSource
@@ -27,8 +27,7 @@ class FortiGen():
                 try:
                     shutil.rmtree(device_path)
                     Path(device_path).mkdir(parents=True, exist_ok=True)
-                #############
-                # Create path
+
                 except OSError as error:
                     raise Exception("Paths cannot be created: {}.".format(error)) from None  # noqa: E501
 
@@ -47,6 +46,7 @@ class FortiGen():
 
             for device in self.source:
                 self.device_list.append(device[0])
+                # Threading?
                 self.__create_folder(device[0])
 
         except Exception as error:
