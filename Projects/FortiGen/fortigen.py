@@ -52,6 +52,17 @@ class FortiGen():
         except Exception as error:
             raise Exception("Paths cannot be created: {}.".format(error)) from None  # noqa: E501
 
+    def create(self):
+        """Get golden image"""
+        try:
+            with open(os.path.join(golden_image_path),'r') as golden_image:
+                ###
+                newText = Config.read().replace('FW502R5618001244', self.Host)
+                newText = newText.replace('set timezone 04', 'set timezone ' + self.TimeZone)
+                ###
+        except Exception as error:
+            raise Exception("Cannot read golden image: {}.".format(error)) from None  # noqa: E501
+
 
 def main():
     """Main"""
