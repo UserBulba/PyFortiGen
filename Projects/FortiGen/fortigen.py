@@ -52,8 +52,8 @@ class FortiGen():
         except Exception as error:
             raise Exception("Paths cannot be created: {}.".format(error)) from None  # noqa: E501
 
-    def create(self):
-        """Get golden image"""
+    def create_config_file(self):
+        """"""
         try:
             with open(os.path.join(golden_image_path),'r') as golden_image:
                 ###
