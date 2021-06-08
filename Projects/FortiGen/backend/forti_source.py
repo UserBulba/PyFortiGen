@@ -47,6 +47,5 @@ def main():
     file = device.read_file()
     print(device.read_source_file(file))
 
-
 if __name__ == "__main__":
     main()

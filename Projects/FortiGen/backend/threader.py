@@ -15,3 +15,9 @@ def threader(func_name, func_args):
 
     for thread in thread_list:
         thread.join()
+
+def main():
+    """Main"""
+
+if __name__ == "__main__":
+    main()

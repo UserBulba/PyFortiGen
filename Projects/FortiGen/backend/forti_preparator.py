@@ -3,17 +3,14 @@ import os
 import shutil
 import tkinter
 from pathlib import Path
-from threading import threader
 from tkinter import filedialog
 
-from python_settings import settings
-
 from forti_source import FortiSource
+from threader import threader
 
-os.environ["SETTINGS_MODULE"] = 'settings'
 
 class FortiPreparator():
-    """FortiSource class"""
+    """FortiPreparator class"""
 
     def __init__(self, source):
         """Init class"""
@@ -60,27 +57,14 @@ class FortiPreparator():
         except Exception as error:
             raise Exception("Paths cannot be created: {}.".format(error)) from None  # noqa: E501
 
-    def create_config_file(self):
-        """"""
-        try:
-            with open(os.path.join(settings.GOLDEN_IMAGE_PATH),'r') as golden_image:
-                ###
-                # newText = Config.read().replace('FW502R5618001244', self.Host)
-                # newText = newText.replace('set timezone 04', 'set timezone ' + self.TimeZone)
-                ###
-                ""
-        except Exception as error:
-            raise Exception("Cannot read golden image: {}.".format(error)) from None  # noqa: E501
-
-
 def main():
     """Main"""
     fortisource = FortiSource()
     source_file = fortisource.read_file()
     content = fortisource.read_source_file(source_file)
 
-    fortigen = FortiPreparator(content)
-    fortigen.create_destination_path()
+    fortiprep = FortiPreparator(content)
+    fortiprep.create_destination_path()
 
 if __name__ == "__main__":
     main()
