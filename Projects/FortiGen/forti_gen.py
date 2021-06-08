@@ -37,7 +37,9 @@ class FortiGen():
             devices_dict = {}
 
             try:
-                devices_dict["hostname"] = device[0]
+                if device[0]:
+                    devices_dict["hostname"] = device[0]
+                ### MAP OTHER ####
                 devices_mapped_list.append(devices_dict)
             except Exception as error:  # pylint: disable=broad-except
                 print ("Cannot map device: {}, error message : {}.".format(device, error))  # noqa: E501
