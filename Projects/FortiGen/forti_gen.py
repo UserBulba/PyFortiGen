@@ -81,7 +81,7 @@ class FortiGen():
 
 def main():
     """Main"""
-    
+
     # Get source file.
     fortisource = FortiSource()
     source_file = fortisource.read_file()
