@@ -44,6 +44,10 @@ class FortiPreparator():
             root.withdraw()
             self.directory_path = filedialog.askdirectory()
 
+            if not self.directory_path:
+                print("Choose a destination path")
+                return
+
             for device in self.source:
                 self.device_list.append(device[0])
 

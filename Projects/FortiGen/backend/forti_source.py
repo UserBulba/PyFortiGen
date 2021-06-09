@@ -20,6 +20,10 @@ class FortiSource():
             root.withdraw()
             file_path = filedialog.askopenfilename()
 
+            if not file_path:
+                print("Choose a source file")
+                return
+
         except Exception as error:
             raise Exception("Cannot open source file: {}.".format(error)) from None  # noqa: E501
 

@@ -37,8 +37,6 @@ class FortiGen():
                 edit_content = edit_content.replace(settings.FORTILINK, device["FortiLink"])
                 edit_content = edit_content.replace(settings.COUNTER, device["Counter"])
 
-
-
             with open(os.path.join(self.output, device["hostname"], 'fgt_config.conf'), "w") as golden_image:
                 golden_image.write(edit_content)
 
@@ -84,14 +82,21 @@ def main():
     # Get source file.
     fortisource = FortiSource()
     source_file = fortisource.read_file()
-    content = fortisource.read_source_file(source_file)
+
+    if source_file:
+        content = fortisource.read_source_file(source_file)
+    else:
+        return
 
     # Prepare output.
     fortiprep = FortiPreparator(content)
     output = fortiprep.create_destination_path()
 
-    # Initiate FortiGen class.
-    fortigen = FortiGen(output)
+    if output:
+        # Initiate FortiGen class.
+        fortigen = FortiGen(output)
+    else:
+        return
 
     # Map source list to dict.
     device_dict = fortigen.create_dict(content)
