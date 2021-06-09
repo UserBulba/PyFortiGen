@@ -1,13 +1,13 @@
 """FortiGate config generator toolkit"""
+# forti_preparator.py
+
 import os
 import shutil
 import tkinter
 from pathlib import Path
 from tkinter import filedialog
 
-### Dev mode ###
-# from forti_source import FortiSource
-from backend.threader import threader
+from backend.threader import threader  # pylint: disable=import-error
 
 class FortiPreparator():
     """FortiPreparator class"""
@@ -56,12 +56,6 @@ class FortiPreparator():
 
 def main():
     """Main"""
-    # fortisource = FortiSource()
-    source_file = fortisource.read_file()
-    content = fortisource.read_source_file(source_file)
-
-    fortiprep = FortiPreparator(content)
-    fortiprep.create_destination_path()
 
 if __name__ == "__main__":
     main()

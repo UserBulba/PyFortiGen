@@ -1,11 +1,12 @@
 """FortiGate config generator toolkit"""
+# forti_gen.py
 import os
 
 from python_settings import settings
 
-from backend.forti_preparator import FortiPreparator
-from backend.forti_source import FortiSource
-from backend.threader import threader
+from backend.forti_preparator import FortiPreparator  # pylint: disable=import-error
+from backend.forti_source import FortiSource          # pylint: disable=import-error
+from backend.threader import threader                 # pylint: disable=import-error
 
 os.environ["SETTINGS_MODULE"] = 'settings'
 
@@ -53,17 +54,17 @@ class FortiGen():
             devices_dict = {}
 
             try:
-                # validate R-PL1234...
+                # To validate
                 if device[0]:
                     devices_dict["hostname"] = device[0]
                 else:
                     continue
-                # IP validator by lib.
+                # To validate
                 if device[6]:
                     devices_dict["Counter"] = device[6]
                 else:
                     continue
-                # IP validator by lib.
+                # To validate
                 if device[8]:
                     devices_dict["FortiLink"] = device[8]
                 else:

@@ -1,4 +1,6 @@
 ''' Multi thread '''
+# threader.py
+
 from threading import Thread
 
 def threader(func_name, func_args):
