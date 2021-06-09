@@ -70,7 +70,6 @@ class FortiGen():
                 else:
                     continue
 
-                ### MAP OTHER ###
                 devices_mapped_list.append(devices_dict)
             except Exception as error:  # pylint: disable=broad-except
                 print ("Cannot map device: {}, error message : {}.".format(device, error))  # noqa: E501
