@@ -81,22 +81,24 @@ class FortiGen():
 
 def main():
     """Main"""
-    #
+    
+    # Get source file.
     fortisource = FortiSource()
     source_file = fortisource.read_file()
     content = fortisource.read_source_file(source_file)
 
+    # Prepare output.
     fortiprep = FortiPreparator(content)
     output = fortiprep.create_destination_path()
 
+    # Initiate FortiGen class.
     fortigen = FortiGen(output)
 
+    # Map source list to dict.
     device_dict = fortigen.create_dict(content)
 
+    # Start config generator in threads.
     threader(fortigen.create_config_file, device_dict)
-
-    #for device in device_dict:
-    #    fortigen.create_config_file(device)
 
 if __name__ == "__main__":
     main()
