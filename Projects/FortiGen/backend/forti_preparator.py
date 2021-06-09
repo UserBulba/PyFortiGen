@@ -5,9 +5,9 @@ import tkinter
 from pathlib import Path
 from tkinter import filedialog
 
-from forti_source import FortiSource
-from threader import threader
-
+### Dev mode ###
+# from forti_source import FortiSource
+from backend.threader import threader
 
 class FortiPreparator():
     """FortiPreparator class"""
@@ -37,11 +37,6 @@ class FortiPreparator():
         except Exception as error:
             raise Exception("Paths cannot be created: {}.".format(error)) from None  # noqa: E501
 
-    @staticmethod
-    def create_dict():
-        """Create dict from list"""
-         
-
     def create_destination_path(self):
         """Create destination folders"""
         try:
@@ -57,9 +52,11 @@ class FortiPreparator():
         except Exception as error:
             raise Exception("Paths cannot be created: {}.".format(error)) from None  # noqa: E501
 
+        return self.directory_path
+
 def main():
     """Main"""
-    fortisource = FortiSource()
+    # fortisource = FortiSource()
     source_file = fortisource.read_file()
     content = fortisource.read_source_file(source_file)
 
