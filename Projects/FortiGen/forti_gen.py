@@ -21,11 +21,18 @@ class FortiGen():
         """Create config files"""
         try:
             with open(os.path.join(settings.GOLDEN_IMAGE_PATH),'r') as golden_image:
+                # Edit alias and hostname.
                 edit_content = golden_image.read().replace(settings.DEVICE_NAME, device["hostname"])
+
+
+                # Create DHCP Scope.
                 edit_content = edit_content.replace(settings.FORTILINK_GATEWAY, device["FortiLink"])
+                edit_content = edit_content.replace(settings.FORTILINK_DHCP_START,
+                                                    str(device["FortiLink"][:-1]) + str(settings.FORTILINK_DHCP_START_VALUE))
+                edit_content = edit_content.replace(settings.FORTILINK_DHCP_STOP,
+                                                    str(device["FortiLink"][:-1]) + str(settings.FORTILINK_DHCP_STOP_VALUE))
 
-                device["FortiLink"]
-
+                # Address interface.
                 edit_content = edit_content.replace(settings.FORTILINK, device["FortiLink"])
                 edit_content = edit_content.replace(settings.COUNTER, device["Counter"])
 
