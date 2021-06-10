@@ -1,12 +1,14 @@
 """FortiGate config generator toolkit"""
 # forti_gen.py
 import os
+import re
+from ipaddress import ip_address, ip_network
 
 from python_settings import settings
 
 from backend.forti_preparator import FortiPreparator  # pylint: disable=import-error
-from backend.forti_source import FortiSource          # pylint: disable=import-error
-from backend.threader import threader                 # pylint: disable=import-error
+from backend.forti_source import FortiSource  # pylint: disable=import-error
+from backend.threader import threader  # pylint: disable=import-error
 
 os.environ["SETTINGS_MODULE"] = 'settings'
 
@@ -40,6 +42,9 @@ class FortiGen():
             with open(os.path.join(self.output, device["hostname"], 'fgt_system.conf'), "w") as golden_image:
                 golden_image.write(edit_content)
 
+                # Output, created info.
+                print("{} - created".format(device["hostname"]))
+
         except Exception as error:
             raise Exception("Cannot read golden image: {}.".format(error)) from None  # noqa: E501
 
@@ -52,20 +57,22 @@ class FortiGen():
             devices_dict = {}
 
             try:
-                # To validate
-                if device[0]:
+                if device[0] and re.search(re.compile(settings.PATTERN), device[0]):
                     devices_dict["hostname"] = device[0]
                 else:
+                    print("{} - incorrect hostname".format(device[0]))
                     continue
-                # To validate
-                if device[6]:
+
+                if device[6] and ip_address(device[6]) in ip_network(settings.PREFIX):
                     devices_dict["Counter"] = device[6]
                 else:
+                    print("{} - incorrect IP Addres {}".format(device[0], device[6]))
                     continue
-                # To validate
-                if device[8]:
+
+                if device[8] and ip_address(device[8]) in ip_network(settings.PREFIX):
                     devices_dict["FortiLink"] = device[8]
                 else:
+                    print("{} - incorrect IP Addres {}".format(device[0], device[8]))
                     continue
 
                 devices_mapped_list.append(devices_dict)

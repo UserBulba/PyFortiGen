@@ -1,13 +1,18 @@
 """FortiGate config generator toolkit"""
 # forti_preparator.py
-
 import os
+import re
 import shutil
 import tkinter
 from pathlib import Path
 from tkinter import filedialog
 
+from python_settings import settings
+
 from backend.threader import threader  # pylint: disable=import-error
+
+os.environ["SETTINGS_MODULE"] = 'settings'
+
 
 class FortiPreparator():
     """FortiPreparator class"""
@@ -49,7 +54,8 @@ class FortiPreparator():
                 return
 
             for device in self.source:
-                self.device_list.append(device[0])
+                if re.search(re.compile(settings.PATTERN), device[0]):
+                    self.device_list.append(device[0])
 
             threader(self.__create_folder, self.device_list)
 

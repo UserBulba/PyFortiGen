@@ -1,1 +1,2 @@
 python_settings == 0.2.2
+ipaddress == 1.0.23
