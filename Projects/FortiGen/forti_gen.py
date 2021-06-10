@@ -37,7 +37,7 @@ class FortiGen():
                 edit_content = edit_content.replace(settings.FORTILINK, device["FortiLink"])
                 edit_content = edit_content.replace(settings.COUNTER, device["Counter"])
 
-            with open(os.path.join(self.output, device["hostname"], 'fgt_config.conf'), "w") as golden_image:
+            with open(os.path.join(self.output, device["hostname"], 'fgt_system.conf'), "w") as golden_image:
                 golden_image.write(edit_content)
 
         except Exception as error:
