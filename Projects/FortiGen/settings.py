@@ -12,6 +12,9 @@ PATTERN = (r'\b([R]{1})(-[A-Z]{2})([0-9]{5})\b')
 # Golden image file name in conf directory.
 GOLDEN_IMAGE_FILE = "golden_config_fgt_system.conf"
 
+# Output config file name.
+CONFIG_FILE = "fgt_system.conf"
+
 # Create path to golden image base on realpath location.
 current_dir = (os.path.dirname(os.path.realpath(__file__)))
 golden_image_path = os.path.join(current_dir, "conf", GOLDEN_IMAGE_FILE)
