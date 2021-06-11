@@ -36,8 +36,8 @@ class FortiGen():
                                                     str(device["FortiLink"][:-1]) + str(settings.FORTILINK_DHCP_STOP_VALUE))
 
                 # Address interface.
-                edit_content = edit_content.replace(settings.FORTILINK, device["FortiLink"])
-                edit_content = edit_content.replace(settings.COUNTER, device["Counter"])
+                edit_content = edit_content.replace(settings.FORTILINK, (device["FortiLink"] + " " + settings.MASK))
+                edit_content = edit_content.replace(settings.COUNTER, (device["Counter"] + " " + settings.MASK))
 
             with open(os.path.join(self.output, device["hostname"], settings.CONFIG_FILE), "w") as golden_image:
                 golden_image.write(edit_content)
