@@ -9,6 +9,9 @@ PREFIX = "10.128.0.0/9"
 # Network mask for vLans.
 MASK = "255.255.255.0"
 
+# Aggregated mask.
+AGGREGATED_MASK = "28"
+
 # Hostname pattern.
 PATTERN = (r'\b([R]{1})(-[A-Z]{2})([0-9]{5})\b')
 

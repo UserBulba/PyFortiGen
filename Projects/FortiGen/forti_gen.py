@@ -2,7 +2,7 @@
 # forti_gen.py
 import os
 import re
-from ipaddress import ip_address, ip_network
+from ipaddress import ip_address, ip_network, IPv4Interface
 
 from python_settings import settings
 
@@ -43,7 +43,7 @@ class FortiGen():
                 golden_image.write(edit_content)
 
                 # Output, created info.
-                print("{} - created".format(device["hostname"]))
+                print("{} - created - {}".format(device["hostname"], device["Aggregated"]))
 
         except Exception as error:
             raise Exception("Cannot read golden image: {}.".format(error)) from None  # noqa: E501
@@ -61,6 +61,12 @@ class FortiGen():
                     devices_dict["hostname"] = device[0]
                 else:
                     print("{} - incorrect hostname".format(device[0]))
+                    continue
+
+                if device[1] and ip_address(device[1]) in ip_network(settings.PREFIX):
+                    devices_dict["Aggregated"] = IPv4Interface(device[1] + "/" + settings.AGGREGATED_MASK).network
+                else:
+                    print("{} - incorrect IP Addres {}".format(device[0], device[1]))
                     continue
 
                 if device[6] and ip_address(device[6]) in ip_network(settings.PREFIX):
