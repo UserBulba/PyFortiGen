@@ -1,3 +1,0 @@
-# Fortigate config generator
-
-## Info
