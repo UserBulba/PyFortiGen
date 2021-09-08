@@ -2,4 +2,4 @@
 
 FortiGen is a simple tool that helps you automate generating configuration files.
 
-![FortiGen](image/logo.png)
+![FortiGen](backend/image/logo.png)
