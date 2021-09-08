@@ -40,6 +40,7 @@ class FortiGen():
 
         try:
             with open(os.path.join(platform),'r') as golden_image:
+
                 # Edit alias and hostname.
                 edit_content = golden_image.read().replace(settings.DEVICE_NAME, device["hostname"])
 
@@ -66,6 +67,7 @@ class FortiGen():
     @staticmethod
     def create_dict(devices_list):
         """Create dict from list"""
+
         devices_mapped_list = []
 
         for device in devices_list:
