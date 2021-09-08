@@ -1,13 +1,16 @@
 """FortiGate config generator toolkit"""
 # forti_gen.py
+import argparse
 import os
 import re
-from ipaddress import ip_address, ip_network, IPv4Interface
+from ipaddress import IPv4Interface, ip_address, ip_network
 
 from python_settings import settings
 
-from backend.forti_preparator import FortiPreparator  # pylint: disable=import-error
+from backend.forti_preparator import \
+    FortiPreparator  # pylint: disable=import-error
 from backend.forti_source import FortiSource  # pylint: disable=import-error
+from backend.question_box import FortiGUI  # pylint: disable=import-error
 from backend.threader import threader  # pylint: disable=import-error
 
 os.environ["SETTINGS_MODULE"] = 'settings'
@@ -16,17 +19,29 @@ os.environ["SETTINGS_MODULE"] = 'settings'
 class FortiGen():
     """FortiGen class"""
 
-    def __init__(self, output):
+    def __init__(self, output, platform):
         """Init class"""
         self.output = output
+        self.platform = platform
+
+    def create_config_path(self):
+        """Get path to golden image"""
+
+        # Create path to golden image base on realpath location.
+        current_dir = (os.path.dirname(os.path.realpath(__file__)))
+        golden_image_path = os.path.join(current_dir, "conf", (self.platform + ".conf"))
+
+        return golden_image_path
 
     def create_config_file(self, device):
         """Create config files"""
+
+        platform = self.create_config_path()
+
         try:
-            with open(os.path.join(settings.GOLDEN_IMAGE_PATH),'r') as golden_image:
+            with open(os.path.join(platform),'r') as golden_image:
                 # Edit alias and hostname.
                 edit_content = golden_image.read().replace(settings.DEVICE_NAME, device["hostname"])
-
 
                 # Create DHCP Scope.
                 edit_content = edit_content.replace(settings.FORTILINK_GATEWAY, device["FortiLink"])
@@ -92,6 +107,22 @@ class FortiGen():
 def main():
     """Main"""
 
+    # Collect parameters.
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-p", "--platform", type=str, choices = settings.PLATFORM,
+                        help = "Indicate the model of the device.")
+
+    args = parser.parse_args()
+    platform = args.platform
+
+    if not platform:
+        get_platform = FortiGUI()
+        platform = get_platform.display_choice(settings.MESSAGE, settings.PLATFORM)
+
+    if platform not in settings.PLATFORM:
+        print("FortiGate platform not specified")
+        return
+
     # Get source file.
     fortisource = FortiSource()
     source_file = fortisource.read_file()
@@ -107,7 +138,7 @@ def main():
 
     if output:
         # Initiate FortiGen class.
-        fortigen = FortiGen(output)
+        fortigen = FortiGen(output, platform)
     else:
         return
 
